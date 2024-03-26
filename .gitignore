@@ -1,3 +1,4 @@
 resources
 results
 .snakemake/
+PWM/__pycache__/
