@@ -1,0 +1,8 @@
+name: chip
+channels:
+    - conda-forge
+    - bioconda
+    - defaults
+dependencies:
+    - pytorch
+    - snakemake

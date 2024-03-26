@@ -1,0 +1,9 @@
+Genome:
+  - mm10
+#  - hg38
+
+Window_kb:
+  - 1
+  - 2
+  - 3
+  - 5
