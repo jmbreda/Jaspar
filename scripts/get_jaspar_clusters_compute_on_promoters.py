@@ -1,13 +1,11 @@
 import numpy as np
 import pandas as pd
 import sys
-sys.path.insert(0, '/home/jbreda/PWM')
+sys.path.insert(0, 'PWM')
 import PWM
-import itertools
 import torch
 import h5py
 import argparse
-import os
 
 def parse_argument():
     parser = argparse.ArgumentParser(description='Plot histogram of experiments QC')
