@@ -2,8 +2,8 @@ configfile: 'config/config.yml'
 
 rule all:
     input:
-        #'results/hg38/Window_pm1kb/convolution_PromSeq_PWM.pt'
-        expand('results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.{ext}', genome=config['Genome'], win=config['Window_kb'], ext=['hdf5','pt'])
+        'results/mm10/Window_pm5kb/convolution_PromSeq_PWM.pt'
+        #expand('results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.{ext}', genome=config['Genome'], win=config['Window_kb'], ext=['hdf5','pt'])
 
 
 rule convolution:
@@ -13,7 +13,7 @@ rule convolution:
     output:
         hdf5='results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.hdf5',
         pt='results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.pt'
-    threads: 8
+    threads: 12
     shell:
         """
         python scripts/get_jaspar_clusters_compute_on_promoters.py --promoterome_bed {input.promoterome_bed} \

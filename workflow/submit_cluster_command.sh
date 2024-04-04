@@ -1,6 +1,6 @@
 #!/bin/bash
 snakemake -s workflow/Snakefile \
-          -j 999 \
+          -j 250 \
           --cluster-config config/cluster.json \
           --cluster "sbatch --job-name {rule} \
                             --qos {cluster.qos} \

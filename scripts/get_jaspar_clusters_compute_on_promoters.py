@@ -43,19 +43,20 @@ def parse_argument():
     return parser.parse_args()
 
 if __name__ == '__main__':
+    print('start..')
 
     args = parse_argument()
 
     # fix number of threads for torch
     torch.set_num_threads(args.threads)
 
-    print('load input files...')
     #infile_jaspar_clusters_to_tf = 'resources/interactive_trees/JASPAR_2022_matrix_clustering_vertebrates_CORE_tables/clusters_motif_names.tab'
     #infile_jaspar_clusters_tf_corr = 'resources/interactive_trees/JASPAR_2022_matrix_clustering_vertebrates_CORE_tables/pairwise_compa.tab'
     #clusters_to_tf = pd.read_csv(infile_jaspar_clusters_to_tf,sep='\t',header=None)
     #clusters_tf_corr = pd.read_csv(infile_jaspar_clusters_tf_corr,sep='\t',low_memory=False)
 
     # get promoterome and sequence
+    print('load promoterome..')
     promoterome = pd.read_csv(args.promoterome_bed,sep='\t')
     promoterome_hdf5 = h5py.File(args.promoterome_hdf5, 'r')
     Prom_seq = torch.from_numpy(promoterome_hdf5['sequence'][:]).float()
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     PWM_tensor = torch.zeros([N_PWM,l_max,4])
     logZ = torch.zeros(N_PWM)
     nuc_perm = np.eye(4).astype(bool)
-    print('compute convolution..')
+    print('Get PWM..')
     for i in np.sort(list(PWMs.keys())):
         L = PWMs[i].shape[0]
         # recursive forward-backward algorithm
@@ -82,6 +83,7 @@ if __name__ == '__main__':
         PWM_tensor[i,:,:] = torch.nn.functional.pad(torch.from_numpy(PWMs[i]),pad=(0,0,int(np.ceil(l_diff)),int(np.floor(l_diff))))
     del PWMs
 
+    print('Get background..')
     # get background frequency correspondiong to PWMs
     background = np.log(PWM.get_background_frequency(args.genome))
     PWM_background_tensor = np.zeros([N_PWM,l_max,4])
@@ -90,22 +92,43 @@ if __name__ == '__main__':
         PWM_background_tensor[i,idx_motif,:] = background[None,:].repeat(idx_motif.sum(),axis=0)
     PWM_background_tensor = torch.from_numpy(PWM_background_tensor).float()
 
-    # input:   (batch_size, in_channels, input width)
-    # filters: (out_channels, in_channels​, kernel width)
-    convolution_bg = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor,1,2) ) )
-    convolution    = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor,1,2) ) )
-    # normalize for backgroud prob.
-    convolution /= convolution + convolution_bg
-    del convolution_bg
-    # normalize for each possible motif.
-    for p in range(convolution.shape[0]):
-        convolution[p] /= convolution[p].sum(axis=0)
+    if args.window_kb > 2:
+        print('do convolution motif by motif..')
+        # do convolution motif by motif
 
-    print('save results..')
-    # save in hdf5
-    with h5py.File(args.outfile_hdf5, 'w') as hf:
-        for p in promoterome.index:
-            prom = hf.create_dataset(promoterome.at[p,'gene'] + '/' + promoterome.at[p,'id'],data=convolution[p])
+        print('declare variables..')
+        N_prom = Prom_seq.shape[0]
+        l_valid_conv = Prom_seq.shape[1] - l_max + 1
+        convolution_bg_ = torch.zeros([N_prom,N_PWM,l_valid_conv])
+        convolution_ = torch.zeros([N_prom,N_PWM,l_valid_conv])
+
+        print('do convolution..')
+        # input:   (batch_size, in_channels, input width)
+        # filters: (out_channels, in_channels​, kernel width)
+        for i in range(N_PWM):
+            convolution_bg_[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor[i:i+1],1,2) ) )
+            convolution_[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor[i:i+1],1,2) ) )
+        convolution_ /= convolution_ + convolution_bg_
+        del convolution_bg_
+        # normalize for each possible motif.
+        print('normalize..')
+        for p in range(convolution_.shape[0]):
+            convolution_[p] /= convolution_[p].sum(axis=0)
+
+    else:
+        print('do convolution all at once..')
+        # do convolution all at once
+    
+        # input:   (batch_size, in_channels, input width)
+        # filters: (out_channels, in_channels​, kernel width)
+        convolution_bg = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor,1,2) ) )
+        convolution    = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor,1,2) ) )
+        # normalize for backgroud prob.
+        convolution /= convolution + convolution_bg
+        del convolution_bg
+        # normalize for each possible motif.
+        for p in range(convolution.shape[0]):
+            convolution[p] /= convolution[p].sum(axis=0)
 
     # save tensor
     torch.save(convolution,args.outfile_pt)
