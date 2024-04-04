@@ -99,21 +99,21 @@ if __name__ == '__main__':
         print('declare variables..')
         N_prom = Prom_seq.shape[0]
         l_valid_conv = Prom_seq.shape[1] - l_max + 1
-        convolution_bg_ = torch.zeros([N_prom,N_PWM,l_valid_conv])
-        convolution_ = torch.zeros([N_prom,N_PWM,l_valid_conv])
+        convolution_bg = torch.zeros([N_prom,N_PWM,l_valid_conv])
+        convolution = torch.zeros([N_prom,N_PWM,l_valid_conv])
 
         print('do convolution..')
         # input:   (batch_size, in_channels, input width)
         # filters: (out_channels, in_channels​, kernel width)
         for i in range(N_PWM):
-            convolution_bg_[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor[i:i+1],1,2) ) )
-            convolution_[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor[i:i+1],1,2) ) )
-        convolution_ /= convolution_ + convolution_bg_
-        del convolution_bg_
+            convolution_bg[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor[i:i+1],1,2) ) )
+            convolution[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor[i:i+1],1,2) ) )
+        convolution /= convolution + convolution_bg
+        del convolution_bg
         # normalize for each possible motif.
         print('normalize..')
-        for p in range(convolution_.shape[0]):
-            convolution_[p] /= convolution_[p].sum(axis=0)
+        for p in range(convolution.shape[0]):
+            convolution[p] /= convolution[p].sum(axis=0)
 
     else:
         print('do convolution all at once..')
