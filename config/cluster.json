@@ -18,6 +18,6 @@
         "name" : "convolution",
         "time" : "02:00:00",
         "cpus-per-task" : 12,
-        "mem" : "360G"
+        "mem" : "300G"
     }
 }
