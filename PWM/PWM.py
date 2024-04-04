@@ -1,7 +1,5 @@
 import numpy as np
-import gzip
 import os
-import re
 import pandas as pd
 import matplotlib as mpl
 from matplotlib import pyplot as plt

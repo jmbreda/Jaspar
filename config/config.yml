@@ -1,6 +1,6 @@
 Genome:
   - mm10
-#  - hg38
+  - hg38
 
 Window_kb:
   - 1
