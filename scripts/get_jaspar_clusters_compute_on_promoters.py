@@ -93,10 +93,9 @@ if __name__ == '__main__':
     PWM_background_tensor = torch.from_numpy(PWM_background_tensor).float()
 
     if args.window_kb > 2:
-        print('do convolution motif by motif..')
+
         # do convolution motif by motif
 
-        print('declare variables..')
         N_prom = Prom_seq.shape[0]
         N_pos = Prom_seq.shape[1]
         convolution = torch.zeros([N_prom,N_PWM,N_pos])
