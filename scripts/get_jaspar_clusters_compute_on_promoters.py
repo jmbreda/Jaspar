@@ -60,6 +60,8 @@ if __name__ == '__main__':
     promoterome = pd.read_csv(args.promoterome_bed,sep='\t')
     promoterome_hdf5 = h5py.File(args.promoterome_hdf5, 'r')
     Prom_seq = torch.from_numpy(promoterome_hdf5['sequence'][:]).float()
+    N_prom = Prom_seq.shape[0]
+    N_pos = Prom_seq.shape[1]
     
     # get pwm_matrix
     PWMs = PWM.get_PWM()
@@ -93,11 +95,9 @@ if __name__ == '__main__':
     PWM_background_tensor = torch.from_numpy(PWM_background_tensor).float()
 
     if args.window_kb > 2:
-
         # do convolution motif by motif
 
-        N_prom = Prom_seq.shape[0]
-        N_pos = Prom_seq.shape[1]
+        # decide convolution size
         convolution = torch.zeros([N_prom,N_PWM,N_pos])
 
         print('do convolution..')
