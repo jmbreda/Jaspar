@@ -2,23 +2,21 @@ configfile: 'config/config.yml'
 
 rule all:
     input:
-        expand('results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.{ext}', genome=config['Genome'], win=config['Window_kb'], ext=['hdf5','pt'])
-
+        #expand('results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.hdf5', genome=config['Genome'], win=config['Window_kb'])
+        'results/mm10/Window_pm5kb/convolution_PromSeq_PWM.hdf5'
 
 rule convolution:
     input:
         promoterome_bed='/home/jbreda/Promoterome/results/{genome}/promoterome_pm{win}kb_filtered_clustered_sorted.bed',
         promoterome_hdf5='/home/jbreda/Promoterome/results/{genome}/promoterome_pm{win}kb_filtered_clustered_sorted.hdf5'
     output:
-        hdf5='results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.hdf5',
-        pt='results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.pt'
-    threads: 12
+        hdf5='results/{genome}/Window_pm{win}kb/convolution_PromSeq_PWM.hdf5'
+    threads: 64
     shell:
         """
         python scripts/get_jaspar_clusters_compute_on_promoters.py --promoterome_bed {input.promoterome_bed} \
                                                                    --promoterome_hdf5 {input.promoterome_hdf5} \
                                                                    --outfile_hdf5 {output.hdf5} \
-                                                                   --outfile_pt {output.pt} \
                                                                    --genome {wildcards.genome} \
                                                                    --window_kb {wildcards.win} \
                                                                    --threads {threads}
