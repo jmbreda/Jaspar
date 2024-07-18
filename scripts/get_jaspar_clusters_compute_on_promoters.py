@@ -108,11 +108,11 @@ if __name__ == '__main__':
 
             convolution[:,i:i+1,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_tensor[i:i+1],1,2) ) )
 
-            convolution_bg = torch.zeros([N_prom,N_PWM,l_valid_conv])
-            convolution_bg[:,0,:] = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor[i:i+1],1,2) ) )
+            #convolution_bg = torch.zeros([N_prom,N_PWM,l_valid_conv])
+            convolution_bg = torch.exp( torch.nn.functional.conv1d( torch.transpose(Prom_seq,1,2), torch.transpose(PWM_background_tensor[i:i+1],1,2) ) )
             convolution[:,i:i+1,:] /= convolution[:,i:i+1,:] + convolution_bg
         del convolution_bg
-        
+
         # normalize for each possible motif.
         print('normalize..')
         for p in range(convolution.shape[0]):
@@ -135,4 +135,9 @@ if __name__ == '__main__':
 
     # save tensor
     torch.save(convolution,args.outfile_pt)
+
+    # save as hdf5
+    with h5py.File(args.outfile_hdf5, 'w') as hf:
+        hf.create_dataset('convolution', data=convolution.numpy())
     print('done!')
+

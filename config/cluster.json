@@ -1,7 +1,6 @@
 {
     "__default__" :
     {
-        "name" : "snakejob",
         "qos" : "serial",
         "stdout" : "stdout/slurm-%x-%j",
         "stderr" : "stderr/slurm-%x-%j",
@@ -15,9 +14,8 @@
 
     "convolution" :
     {
-        "name" : "convolution",
         "time" : "02:00:00",
         "cpus-per-task" : 12,
-        "mem" : "300G"
+        "mem" : "420G"
     }
 }
